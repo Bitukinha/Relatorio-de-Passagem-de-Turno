@@ -103,6 +103,12 @@ export function AppShell() {
       <main className="mx-auto max-w-7xl px-4 py-8">
         <Outlet />
       </main>
+
+      <footer className="border-t border-border py-6">
+        <p className="text-center text-xs text-muted-foreground">
+          © 2026 Nutrimilho (Novaes Tech) | Todos os direitos reservados
+        </p>
+      </footer>
     </div>
   );
 }

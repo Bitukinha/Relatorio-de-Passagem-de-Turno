@@ -103,9 +103,12 @@ function Index() {
       </main>
 
       <footer className="border-t border-border py-6">
-        <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 text-xs text-muted-foreground">
-          <ShieldCheck className="size-4" />
-          Acesso restrito à equipe da fábrica.
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 text-xs text-muted-foreground">
+          <span className="flex items-center gap-2">
+            <ShieldCheck className="size-4" />
+            Acesso restrito à equipe da fábrica.
+          </span>
+          <span>© 2026 Nutrimilho (Novaes Tech) | Todos os direitos reservados</span>
         </div>
       </footer>
     </div>
