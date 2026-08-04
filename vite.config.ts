@@ -38,8 +38,8 @@ export default defineConfig(({ command }) => ({
       },
       server: { entry: "server" },
     }),
-    // nitro builds the Cloudflare Worker output; only needed for `vite build`.
-    ...(command === "build" ? [nitro({ defaultPreset: "cloudflare-module" })] : []),
+    // nitro builds the Vercel output; only needed for `vite build`.
+    ...(command === "build" ? [nitro({ preset: "vercel" })] : []),
     viteReact(),
   ],
 }));
