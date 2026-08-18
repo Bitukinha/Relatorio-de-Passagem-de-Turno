@@ -24,6 +24,7 @@ import {
   type Turno,
 } from "@/lib/shift";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export const Route = createFileRoute("/_authenticated/painel")({
   head: () => ({
@@ -97,6 +98,40 @@ function Painel() {
 
   return (
     <div className="space-y-8">
+      {abertas.length > 0 && (
+        <Alert variant="destructive">
+          <AlertTriangle className="size-4" />
+          <AlertTitle>
+            {abertas.length} pendência{abertas.length > 1 ? "s" : ""} deixada
+            {abertas.length > 1 ? "s" : ""} para o próximo turno
+          </AlertTitle>
+          <AlertDescription>
+            <ul className="mt-2 space-y-1.5">
+              {abertas.slice(0, 5).map((p, i) => (
+                <li key={i}>
+                  <Link
+                    to="/relatorios/$id"
+                    params={{ id: p.report.id }}
+                    className="font-medium text-foreground underline-offset-2 hover:underline"
+                  >
+                    {p.descricao || "(sem descrição)"}
+                  </Link>
+                  <span className="text-muted-foreground">
+                    {" "}
+                    — turno {p.report.turno}, {formatarData(p.report.data)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {abertas.length > 5 && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                +{abertas.length - 5} outra(s) pendência(s) na lista completa abaixo.
+              </p>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div>
         <h1 className="text-3xl font-bold uppercase">Indicadores</h1>
         <p className="text-sm text-muted-foreground">
