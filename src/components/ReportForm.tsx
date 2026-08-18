@@ -154,14 +154,6 @@ export function ReportForm({
               </SelectContent>
             </Select>
           </Campo>
-          <Campo label="Linha / Setor">
-            <Input
-              value={f.setor}
-              maxLength={120}
-              placeholder="Ex.: Moinho 1, Embalagem"
-              onChange={(e) => set("setor", e.target.value)}
-            />
-          </Campo>
           <Campo label="Equipe presente" className="md:col-span-3">
             <div className="flex flex-wrap gap-2">
               {f.equipe.map((membro) => (
