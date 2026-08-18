@@ -8,7 +8,6 @@ export const Route = createFileRoute("/_authenticated/cadastros")({
 });
 
 const TABS = [
-  { to: "/cadastros/equipamentos", label: "Equipamentos" },
   { to: "/cadastros/supervisores", label: "Supervisores" },
   { to: "/cadastros/colaboradores", label: "Colaboradores" },
 ] as const;
@@ -21,7 +20,7 @@ function CadastrosLayout() {
       <div>
         <h1 className="text-3xl font-bold uppercase">Cadastros</h1>
         <p className="text-sm text-muted-foreground">
-          Equipamentos, supervisores e colaboradores usados nos relatórios.
+          Supervisores e colaboradores usados nos relatórios.
         </p>
       </div>
 

@@ -16,35 +16,121 @@ export type ProducaoItem = {
   reprocesso: number;
 };
 
-export type MaquinaLinha = {
-  equipamento: string;
+export type EquipamentoItem = {
+  id: string;
+  nome: string;
   status: string;
+  horimetro: string;
+  tela: string;
   observacao: string;
 };
 
-export type MaquinaSetor = {
+export type EquipamentoGrupo = {
   id: string;
   titulo: string;
-  linhas: MaquinaLinha[];
-  observacaoGeral: string;
+  mostrarHorimetro: boolean;
+  mostrarTela: boolean;
+  itens: EquipamentoItem[];
 };
 
-export const SETORES_MAQUINAS = [
-  "Degerminação",
-  "Moagem",
-  "Moinhos vieiras",
-  "Moinho — Banco de cilindros",
-  "Setor extrusoras",
-  "Moinhos vieiras 950 e 680 A",
-] as const;
+function slug(v: string): string {
+  return v.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+}
 
-function novoSetorMaquinas(titulo: string): MaquinaSetor {
-  return {
-    id: titulo.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-    titulo,
-    linhas: [{ equipamento: "", status: "", observacao: "" }],
-    observacaoGeral: "",
-  };
+const GRUPOS_EQUIPAMENTOS_PADRAO: {
+  titulo: string;
+  itens: string[];
+  horimetro: boolean;
+  tela: boolean;
+}[] = [
+  { titulo: "Pós-limpeza", itens: ["CLPZ 1", "CLPZ 2"], horimetro: true, tela: false },
+  {
+    titulo: "Degerminadoras",
+    itens: ["DHZ 1", "DHZ 2", "DHZ 3", "DHZ 4", "DHZ 5"],
+    horimetro: true,
+    tela: false,
+  },
+  {
+    titulo: "Bancos de cilindro",
+    itens: [
+      "T1 — Lado A",
+      "T1 — Lado B",
+      "T2 — Lado A",
+      "T2 — Lado B",
+      "T3 — Lado A",
+      "T3 — Lado B",
+    ],
+    horimetro: true,
+    tela: false,
+  },
+  {
+    titulo: "Moinhos martelo",
+    itens: ["M1", "M2", "M3", "M6", "M7", "M8"],
+    horimetro: true,
+    tela: true,
+  },
+  {
+    titulo: "Classificação",
+    itens: ["PL-1 (Sangati)", "Monocanal"],
+    horimetro: false,
+    tela: false,
+  },
+  {
+    titulo: "Extrusão",
+    itens: ["Extrusora 01 (Ferraz)", "Extrusora 02 (Zeng)"],
+    horimetro: true,
+    tela: false,
+  },
+  { titulo: "Envase", itens: ["DAPX", "INSACK", "SAT"], horimetro: false, tela: false },
+];
+
+export function novosEquipamentos(): EquipamentoGrupo[] {
+  return GRUPOS_EQUIPAMENTOS_PADRAO.map((grupo) => ({
+    id: slug(grupo.titulo),
+    titulo: grupo.titulo,
+    mostrarHorimetro: grupo.horimetro,
+    mostrarTela: grupo.tela,
+    itens: grupo.itens.map((nome) => ({
+      id: slug(`${grupo.titulo}-${nome}`),
+      nome,
+      status: "",
+      horimetro: "",
+      tela: "",
+      observacao: "",
+    })),
+  }));
+}
+
+export type SiloItem = {
+  id: string;
+  numero: string;
+  volume: string;
+  produto: string;
+};
+
+export type SiloGrupo = {
+  id: string;
+  titulo: string;
+  itens: SiloItem[];
+};
+
+const GRUPOS_SILOS_PADRAO: { titulo: string; quantidade: number }[] = [
+  { titulo: "Silos de canjica", quantidade: 3 },
+  { titulo: "Silos de P.A. (moagem)", quantidade: 6 },
+  { titulo: "Silos de P.A. extrusão", quantidade: 4 },
+];
+
+export function novosSilos(): SiloGrupo[] {
+  return GRUPOS_SILOS_PADRAO.map((grupo) => ({
+    id: slug(grupo.titulo),
+    titulo: grupo.titulo,
+    itens: Array.from({ length: grupo.quantidade }, (_, i) => ({
+      id: slug(`${grupo.titulo}-${i + 1}`),
+      numero: String(i + 1),
+      volume: "",
+      produto: "",
+    })),
+  }));
 }
 
 export type ParadaItem = {
@@ -77,7 +163,8 @@ export type ShiftReport = {
   setor: string;
   resumo: string;
   producao: ProducaoItem[];
-  maquinas: MaquinaSetor[];
+  silos: SiloGrupo[];
+  equipamentos: EquipamentoGrupo[];
   paradas: ParadaItem[];
   qualidade: string;
   estoque: string;
@@ -107,7 +194,8 @@ export function emptyReport(): ShiftReportInput {
     setor: "",
     resumo: "",
     producao: [{ produto: "", produzido: 0, meta: 0, refugo: 0, reprocesso: 0 }],
-    maquinas: SETORES_MAQUINAS.map(novoSetorMaquinas),
+    silos: novosSilos(),
+    equipamentos: novosEquipamentos(),
     paradas: [],
     qualidade: "",
     estoque: "",

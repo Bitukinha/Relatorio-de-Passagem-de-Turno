@@ -74,26 +74,62 @@ export function gerarPdf(r: ShiftReport) {
     y = tableEnd(doc);
   }
 
-  if (r.maquinas.length) {
-    y = titulo(doc, y, "3. Maquinas");
-    for (const setor of r.maquinas) {
-      const linhas = setor.linhas.filter((l) => l.equipamento || l.status || l.observacao);
-      if (!linhas.length && !setor.observacaoGeral) continue;
+  if (r.silos.length) {
+    y = titulo(doc, y, "3. Status dos silos");
+    for (const grupo of r.silos) {
+      const itens = grupo.itens.filter((i) => i.volume || i.produto);
+      if (!itens.length) continue;
       y = quebraPagina(doc, y, 14);
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9.5);
       doc.setTextColor(30, 90, 54);
-      doc.text(setor.titulo.toUpperCase(), MARGIN, y);
+      doc.text(grupo.titulo.toUpperCase(), MARGIN, y);
       y += 3;
       autoTable(doc, {
         startY: y,
         theme: "striped",
         styles: { fontSize: 9, cellPadding: 2 },
         headStyles: { fillColor: [30, 90, 54], textColor: 255 },
-        head: [["Equipamento", "Status", "Observacao"]],
-        body: linhas.map((l) => [l.equipamento || "-", l.status || "-", l.observacao || "-"]),
+        head: [["Silo", "Volume", "Produto"]],
+        body: itens.map((i) => [i.numero, i.volume || "-", i.produto || "-"]),
+      });
+      y = tableEnd(doc);
+    }
+  }
+
+  if (r.equipamentos.length) {
+    y = titulo(doc, y, "4. Equipamentos");
+    for (const grupo of r.equipamentos) {
+      const itens = grupo.itens.filter((i) => i.status || i.horimetro || i.tela || i.observacao);
+      if (!itens.length) continue;
+      y = quebraPagina(doc, y, 14);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9.5);
+      doc.setTextColor(30, 90, 54);
+      doc.text(grupo.titulo.toUpperCase(), MARGIN, y);
+      y += 3;
+      const head = [
+        "Equipamento",
+        "Status",
+        ...(grupo.mostrarHorimetro ? ["Horimetro"] : []),
+        ...(grupo.mostrarTela ? ["Tela"] : []),
+        "Observacao",
+      ];
+      autoTable(doc, {
+        startY: y,
+        theme: "striped",
+        styles: { fontSize: 9, cellPadding: 2 },
+        headStyles: { fillColor: [30, 90, 54], textColor: 255 },
+        head: [head],
+        body: itens.map((i) => [
+          i.nome,
+          i.status || "-",
+          ...(grupo.mostrarHorimetro ? [i.horimetro || "-"] : []),
+          ...(grupo.mostrarTela ? [i.tela || "-"] : []),
+          i.observacao || "-",
+        ]),
         didParseCell: (data) => {
-          const linha = linhas[data.row.index];
+          const linha = itens[data.row.index];
           if (data.section === "body" && linha?.status.trim().toUpperCase() === "PARADO") {
             data.cell.styles.fillColor = [254, 226, 226];
             data.cell.styles.textColor = [153, 27, 27];
@@ -101,14 +137,11 @@ export function gerarPdf(r: ShiftReport) {
         },
       });
       y = tableEnd(doc);
-      if (setor.observacaoGeral) {
-        y = bloco(doc, y, "Observacao geral do setor", setor.observacaoGeral);
-      }
     }
   }
 
   if (r.paradas.length) {
-    y = titulo(doc, y, `4. Paradas e anomalias (${formatarNumero(tempoParado(r))} min)`);
+    y = titulo(doc, y, `5. Paradas e anomalias (${formatarNumero(tempoParado(r))} min)`);
     autoTable(doc, {
       startY: y,
       theme: "striped",
@@ -125,19 +158,19 @@ export function gerarPdf(r: ShiftReport) {
     y = tableEnd(doc);
   }
 
-  y = bloco(doc, y, "5. Qualidade", r.qualidade || "-");
-  y = bloco(doc, y, "6. Estoque", r.estoque || "-");
-  y = bloco(doc, y, "7. Manutencao", r.manutencao || "-");
+  y = bloco(doc, y, "6. Qualidade", r.qualidade || "-");
+  y = bloco(doc, y, "7. Estoque", r.estoque || "-");
+  y = bloco(doc, y, "8. Manutencao", r.manutencao || "-");
   y = bloco(
     doc,
     y,
-    "8. Seguranca",
+    "9. Seguranca",
     `Acidentes: ${r.seguranca.acidentes} | Quase acidentes: ${r.seguranca.quase_acidentes}\n${r.seguranca.observacoes || "-"}`,
   );
-  y = bloco(doc, y, "9. Limpeza e organizacao (5S)", r.limpeza || "-");
+  y = bloco(doc, y, "10. Limpeza e organizacao (5S)", r.limpeza || "-");
 
   if (r.pendencias.length) {
-    y = titulo(doc, y, "10. Pendencias para o proximo turno");
+    y = titulo(doc, y, "11. Pendencias para o proximo turno");
     autoTable(doc, {
       startY: y,
       theme: "striped",
@@ -149,9 +182,9 @@ export function gerarPdf(r: ShiftReport) {
     y = tableEnd(doc);
   }
 
-  y = bloco(doc, y, "11. Observacoes", r.observacoes || "-");
+  y = bloco(doc, y, "12. Observacoes", r.observacoes || "-");
 
-  y = titulo(doc, y, "12. Aprovacoes");
+  y = titulo(doc, y, "13. Aprovacoes");
   autoTable(doc, {
     startY: y,
     theme: "grid",

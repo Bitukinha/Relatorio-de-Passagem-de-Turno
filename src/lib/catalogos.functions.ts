@@ -3,34 +3,8 @@ import { z } from "zod";
 import { sql } from "./db.server";
 import { requireAdmin, requireUsuario } from "./session.server";
 
-export type Equipamento = { id: string; setor: string; nome: string };
 export type Supervisor = { id: string; nome: string };
 export type Colaborador = { id: string; nome: string; funcao: string };
-
-export const listEquipamentos = createServerFn({ method: "GET" }).handler(
-  async (): Promise<Equipamento[]> => {
-    await requireUsuario();
-    const rows = await sql`SELECT id, setor, nome FROM equipamentos ORDER BY setor, nome`;
-    return rows as Equipamento[];
-  },
-);
-
-export const createEquipamento = createServerFn({ method: "POST" })
-  .validator(z.object({ setor: z.string().min(1), nome: z.string().min(1) }))
-  .handler(async ({ data: { setor, nome } }): Promise<Equipamento> => {
-    await requireAdmin();
-    const rows = await sql`
-      INSERT INTO equipamentos (setor, nome) VALUES (${setor}, ${nome}) RETURNING id, setor, nome
-    `;
-    return rows[0] as Equipamento;
-  });
-
-export const deleteEquipamento = createServerFn({ method: "POST" })
-  .validator(z.string())
-  .handler(async ({ data: id }): Promise<void> => {
-    await requireAdmin();
-    await sql`DELETE FROM equipamentos WHERE id = ${id}`;
-  });
 
 export const listSupervisores = createServerFn({ method: "GET" }).handler(
   async (): Promise<Supervisor[]> => {

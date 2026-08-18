@@ -20,7 +20,8 @@ function normalize(row: Record<string, unknown>): ShiftReport {
     updated_at: toIsoDateTime(row["updated_at"]),
     equipe: (row["equipe"] as ShiftReport["equipe"]) ?? [],
     producao: (row["producao"] as ShiftReport["producao"]) ?? [],
-    maquinas: (row["maquinas"] as ShiftReport["maquinas"]) ?? [],
+    silos: (row["silos"] as ShiftReport["silos"]) ?? [],
+    equipamentos: (row["equipamentos"] as ShiftReport["equipamentos"]) ?? [],
     paradas: (row["paradas"] as ShiftReport["paradas"]) ?? [],
     pendencias: (row["pendencias"] as ShiftReport["pendencias"]) ?? [],
     seguranca:
@@ -54,12 +55,13 @@ export const createReport = createServerFn({ method: "POST" })
     const rows = await sql`
       INSERT INTO shift_reports (
         criado_por, data, turno, hora_inicio, hora_fim, responsavel, equipe, setor, resumo,
-        producao, maquinas, paradas, qualidade, estoque, manutencao, seguranca, limpeza,
+        producao, silos, equipamentos, paradas, qualidade, estoque, manutencao, seguranca, limpeza,
         pendencias, observacoes, entregue_por, recebido_por, status
       ) VALUES (
         ${usuario.nome}, ${r.data}, ${r.turno}, ${r.hora_inicio}, ${r.hora_fim}, ${r.responsavel},
         ${JSON.stringify(r.equipe)}::jsonb,
-        ${r.setor}, ${r.resumo}, ${JSON.stringify(r.producao)}::jsonb, ${JSON.stringify(r.maquinas)}::jsonb,
+        ${r.setor}, ${r.resumo}, ${JSON.stringify(r.producao)}::jsonb, ${JSON.stringify(r.silos)}::jsonb,
+        ${JSON.stringify(r.equipamentos)}::jsonb,
         ${JSON.stringify(r.paradas)}::jsonb, ${r.qualidade}, ${r.estoque}, ${r.manutencao},
         ${JSON.stringify(r.seguranca)}::jsonb, ${r.limpeza}, ${JSON.stringify(r.pendencias)}::jsonb,
         ${r.observacoes}, ${r.entregue_por}, ${r.recebido_por}, ${r.status}
@@ -78,7 +80,8 @@ export const updateReport = createServerFn({ method: "POST" })
         data = ${r.data}, turno = ${r.turno}, hora_inicio = ${r.hora_inicio}, hora_fim = ${r.hora_fim},
         responsavel = ${r.responsavel}, equipe = ${JSON.stringify(r.equipe)}::jsonb,
         setor = ${r.setor}, resumo = ${r.resumo},
-        producao = ${JSON.stringify(r.producao)}::jsonb, maquinas = ${JSON.stringify(r.maquinas)}::jsonb,
+        producao = ${JSON.stringify(r.producao)}::jsonb, silos = ${JSON.stringify(r.silos)}::jsonb,
+        equipamentos = ${JSON.stringify(r.equipamentos)}::jsonb,
         paradas = ${JSON.stringify(r.paradas)}::jsonb, qualidade = ${r.qualidade}, estoque = ${r.estoque},
         manutencao = ${r.manutencao}, seguranca = ${JSON.stringify(r.seguranca)}::jsonb,
         limpeza = ${r.limpeza}, pendencias = ${JSON.stringify(r.pendencias)}::jsonb,

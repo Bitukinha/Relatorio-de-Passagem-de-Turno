@@ -4,7 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { ReportForm } from "@/components/ReportForm";
 import { createReport } from "@/lib/reports.functions";
-import { listColaboradores, listEquipamentos, listSupervisores } from "@/lib/catalogos.functions";
+import { listColaboradores, listSupervisores } from "@/lib/catalogos.functions";
 import { emptyReport, type ShiftReportInput } from "@/lib/shift";
 
 export const Route = createFileRoute("/_authenticated/relatorios/novo")({
@@ -38,10 +38,6 @@ function Novo() {
   const { data: colaboradores } = useQuery({
     queryKey: ["colaboradores"],
     queryFn: listColaboradores,
-  });
-  const { data: equipamentos } = useQuery({
-    queryKey: ["equipamentos"],
-    queryFn: listEquipamentos,
   });
 
   async function salvar(status: "rascunho" | "finalizado") {
@@ -77,7 +73,6 @@ function Novo() {
         salvando={salvando}
         supervisores={supervisores ?? []}
         colaboradores={colaboradores ?? []}
-        equipamentos={equipamentos ?? []}
       />
     </div>
   );

@@ -18,7 +18,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { deleteReport, getReport, updateReport } from "@/lib/reports.functions";
-import { listColaboradores, listEquipamentos, listSupervisores } from "@/lib/catalogos.functions";
+import { listColaboradores, listSupervisores } from "@/lib/catalogos.functions";
 import { gerarPdf } from "@/lib/pdf";
 import { emptyReport, formatarData, type ShiftReportInput } from "@/lib/shift";
 
@@ -58,10 +58,6 @@ function Detalhe() {
   const { data: colaboradores } = useQuery({
     queryKey: ["colaboradores"],
     queryFn: listColaboradores,
-  });
-  const { data: equipamentos } = useQuery({
-    queryKey: ["equipamentos"],
-    queryFn: listEquipamentos,
   });
 
   useEffect(() => {
@@ -144,7 +140,6 @@ function Detalhe() {
         onPdf={() => gerarPdf({ ...data, ...valor })}
         supervisores={supervisores ?? []}
         colaboradores={colaboradores ?? []}
-        equipamentos={equipamentos ?? []}
       />
     </div>
   );

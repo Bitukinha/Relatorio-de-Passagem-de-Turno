@@ -13,14 +13,15 @@ import {
 import { Plus, Trash2, Save, FileDown, X } from "lucide-react";
 import {
   TURNOS,
-  type MaquinaLinha,
+  type EquipamentoItem,
   type ParadaItem,
   type PendenciaItem,
   type ProducaoItem,
   type ShiftReportInput,
+  type SiloItem,
   type Turno,
 } from "@/lib/shift";
-import type { Colaborador, Equipamento, Supervisor } from "@/lib/catalogos.functions";
+import type { Colaborador, Supervisor } from "@/lib/catalogos.functions";
 
 function Secao({
   numero,
@@ -69,7 +70,6 @@ type Props = {
   salvando?: boolean;
   supervisores: Supervisor[];
   colaboradores: Colaborador[];
-  equipamentos: Equipamento[];
 };
 
 export function ReportForm({
@@ -80,7 +80,6 @@ export function ReportForm({
   salvando,
   supervisores,
   colaboradores,
-  equipamentos,
 }: Props) {
   const [f, setF] = useState(valor);
 
@@ -100,27 +99,16 @@ export function ReportForm({
     onChange(novo);
   }
 
-  function addLinhaMaquina(sIdx: number) {
-    const setor = f.maquinas[sIdx];
-    if (!setor) return;
-    set(
-      "maquinas",
-      edit(f.maquinas, sIdx, {
-        linhas: [...setor.linhas, { equipamento: "", status: "", observacao: "" }],
-      }),
-    );
+  function updateSiloItem(gIdx: number, iIdx: number, patch: Partial<SiloItem>) {
+    const grupo = f.silos[gIdx];
+    if (!grupo) return;
+    set("silos", edit(f.silos, gIdx, { itens: edit(grupo.itens, iIdx, patch) }));
   }
 
-  function removeLinhaMaquina(sIdx: number, lIdx: number) {
-    const setor = f.maquinas[sIdx];
-    if (!setor) return;
-    set("maquinas", edit(f.maquinas, sIdx, { linhas: remove(setor.linhas, lIdx) }));
-  }
-
-  function updateLinhaMaquina(sIdx: number, lIdx: number, patch: Partial<MaquinaLinha>) {
-    const setor = f.maquinas[sIdx];
-    if (!setor) return;
-    set("maquinas", edit(f.maquinas, sIdx, { linhas: edit(setor.linhas, lIdx, patch) }));
+  function updateEquipamentoItem(gIdx: number, iIdx: number, patch: Partial<EquipamentoItem>) {
+    const grupo = f.equipamentos[gIdx];
+    if (!grupo) return;
+    set("equipamentos", edit(f.equipamentos, gIdx, { itens: edit(grupo.itens, iIdx, patch) }));
   }
 
   return (
@@ -292,68 +280,73 @@ export function ReportForm({
         </div>
       </Secao>
 
-      <Secao numero="4" titulo="Máquinas">
+      <Secao numero="4" titulo="Status dos silos">
         <div className="space-y-4">
-          {f.maquinas.map((setorMaquina, sIdx) => (
-            <section
-              key={setorMaquina.id}
-              className="overflow-hidden rounded-lg border border-success/40"
-            >
+          {f.silos.map((grupo, gIdx) => (
+            <section key={grupo.id} className="overflow-hidden rounded-lg border border-success/40">
               <header className="flex items-center gap-3 border-b border-success/40 bg-success/10 px-4 py-2.5">
                 <span className="h-6 w-1.5 rounded bg-success" />
                 <span className="flex-1 text-sm font-bold uppercase tracking-wide">
-                  {setorMaquina.titulo}
+                  {grupo.titulo}
                 </span>
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => addLinhaMaquina(sIdx)}
-                  className="bg-success text-success-foreground hover:bg-success/90"
-                >
-                  <Plus className="size-4" /> Linha
-                </Button>
               </header>
-
               <div className="space-y-2 p-3">
-                {setorMaquina.linhas.map((linha, lIdx) => {
-                  const parado = linha.status.trim().toUpperCase() === "PARADO";
-                  const opcoesEquipamento = equipamentos.filter(
-                    (eq) => eq.setor === setorMaquina.titulo,
-                  );
+                {grupo.itens.map((item, iIdx) => (
+                  <div
+                    key={item.id}
+                    className="flex flex-wrap items-center gap-2 rounded-md bg-secondary/40 p-2"
+                  >
+                    <span className="w-10 shrink-0 text-sm font-medium">Silo {item.numero}</span>
+                    <Input
+                      className="w-full sm:w-36"
+                      placeholder="Volume"
+                      value={item.volume}
+                      onChange={(e) => updateSiloItem(gIdx, iIdx, { volume: e.target.value })}
+                    />
+                    <Input
+                      className="min-w-[160px] flex-1"
+                      placeholder="Produto"
+                      value={item.produto}
+                      onChange={(e) => updateSiloItem(gIdx, iIdx, { produto: e.target.value })}
+                    />
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      </Secao>
+
+      <Secao numero="5" titulo="Equipamentos">
+        <div className="space-y-4">
+          {f.equipamentos.map((grupo, gIdx) => (
+            <section key={grupo.id} className="overflow-hidden rounded-lg border border-success/40">
+              <header className="flex items-center gap-3 border-b border-success/40 bg-success/10 px-4 py-2.5">
+                <span className="h-6 w-1.5 rounded bg-success" />
+                <span className="flex-1 text-sm font-bold uppercase tracking-wide">
+                  {grupo.titulo}
+                </span>
+              </header>
+              <div className="space-y-2 p-3">
+                {grupo.itens.map((item, iIdx) => {
+                  const parado = item.status.trim().toUpperCase() === "PARADO";
                   return (
                     <div
-                      key={lIdx}
-                      className={`grid items-start gap-2 rounded-md p-2 md:grid-cols-[1fr_1fr_2fr_auto] ${
+                      key={item.id}
+                      className={`flex flex-wrap items-center gap-2 rounded-md p-2 ${
                         parado
                           ? "border border-destructive/40 bg-destructive/10"
                           : "bg-secondary/40"
                       }`}
                     >
+                      <span className="w-full shrink-0 text-sm font-medium sm:w-44">
+                        {item.nome}
+                      </span>
                       <Select
-                        value={linha.equipamento}
-                        onValueChange={(v) => updateLinhaMaquina(sIdx, lIdx, { equipamento: v })}
+                        value={item.status}
+                        onValueChange={(v) => updateEquipamentoItem(gIdx, iIdx, { status: v })}
                       >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Equipamento" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {opcoesEquipamento.map((eq) => (
-                            <SelectItem key={eq.id} value={eq.nome}>
-                              {eq.nome}
-                            </SelectItem>
-                          ))}
-                          {!opcoesEquipamento.length && (
-                            <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                              Nenhum equipamento cadastrado.
-                            </div>
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <Select
-                        value={linha.status}
-                        onValueChange={(v) => updateLinhaMaquina(sIdx, lIdx, { status: v })}
-                      >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full sm:w-40">
                           <SelectValue placeholder="Status" />
                         </SelectTrigger>
                         <SelectContent>
@@ -361,42 +354,44 @@ export function ReportForm({
                           <SelectItem value="OPERAÇÃO">Operação</SelectItem>
                         </SelectContent>
                       </Select>
+                      {grupo.mostrarHorimetro && (
+                        <Input
+                          className="w-full sm:w-32"
+                          placeholder="Horímetro"
+                          value={item.horimetro}
+                          onChange={(e) =>
+                            updateEquipamentoItem(gIdx, iIdx, { horimetro: e.target.value })
+                          }
+                        />
+                      )}
+                      {grupo.mostrarTela && (
+                        <Input
+                          className="w-full sm:w-24"
+                          placeholder="Tela"
+                          value={item.tela}
+                          onChange={(e) =>
+                            updateEquipamentoItem(gIdx, iIdx, { tela: e.target.value })
+                          }
+                        />
+                      )}
                       <Input
-                        placeholder="Justificativa / observação"
-                        value={linha.observacao}
+                        className="min-w-[160px] flex-1"
+                        placeholder="Observação"
+                        value={item.observacao}
                         onChange={(e) =>
-                          updateLinhaMaquina(sIdx, lIdx, { observacao: e.target.value })
+                          updateEquipamentoItem(gIdx, iIdx, { observacao: e.target.value })
                         }
                       />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeLinhaMaquina(sIdx, lIdx)}
-                        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                      >
-                        <Trash2 className="size-4" /> Remover
-                      </Button>
                     </div>
                   );
                 })}
-
-                <Campo label="Observação geral sobre este setor (opcional)">
-                  <Textarea
-                    rows={2}
-                    value={setorMaquina.observacaoGeral}
-                    onChange={(e) =>
-                      set("maquinas", edit(f.maquinas, sIdx, { observacaoGeral: e.target.value }))
-                    }
-                  />
-                </Campo>
               </div>
             </section>
           ))}
         </div>
       </Secao>
 
-      <Secao numero="5" titulo="Paradas e anomalias">
+      <Secao numero="6" titulo="Paradas e anomalias">
         <div className="space-y-3">
           {f.paradas.map((p, i) => (
             <div key={i} className="grid gap-3 rounded-md bg-secondary/40 p-3 md:grid-cols-12">
@@ -459,7 +454,7 @@ export function ReportForm({
       </Secao>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Secao numero="6" titulo="Qualidade">
+        <Secao numero="7" titulo="Qualidade">
           <Textarea
             rows={4}
             maxLength={2000}
@@ -468,7 +463,7 @@ export function ReportForm({
             onChange={(e) => set("qualidade", e.target.value)}
           />
         </Secao>
-        <Secao numero="7" titulo="Estoque">
+        <Secao numero="8" titulo="Estoque">
           <Textarea
             rows={4}
             maxLength={2000}
@@ -477,7 +472,7 @@ export function ReportForm({
             onChange={(e) => set("estoque", e.target.value)}
           />
         </Secao>
-        <Secao numero="8" titulo="Manutenção">
+        <Secao numero="9" titulo="Manutenção">
           <Textarea
             rows={4}
             maxLength={2000}
@@ -486,7 +481,7 @@ export function ReportForm({
             onChange={(e) => set("manutencao", e.target.value)}
           />
         </Secao>
-        <Secao numero="9" titulo="Segurança">
+        <Secao numero="10" titulo="Segurança">
           <div className="grid gap-4 sm:grid-cols-2">
             <Campo label="Acidentes">
               <Input
@@ -524,7 +519,7 @@ export function ReportForm({
         </Secao>
       </div>
 
-      <Secao numero="10" titulo="Limpeza e organização (5S)">
+      <Secao numero="11" titulo="Limpeza e organização (5S)">
         <Textarea
           rows={3}
           maxLength={2000}
@@ -534,7 +529,7 @@ export function ReportForm({
         />
       </Secao>
 
-      <Secao numero="11" titulo="Pendências para o próximo turno">
+      <Secao numero="12" titulo="Pendências para o próximo turno">
         <div className="space-y-3">
           {f.pendencias.map((p, i) => (
             <div key={i} className="flex flex-wrap items-end gap-3 rounded-md bg-secondary/40 p-3">
@@ -588,7 +583,7 @@ export function ReportForm({
         </div>
       </Secao>
 
-      <Secao numero="12" titulo="Observações e aprovações">
+      <Secao numero="13" titulo="Observações e aprovações">
         <Textarea
           rows={3}
           maxLength={2000}
