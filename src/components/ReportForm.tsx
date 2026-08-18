@@ -164,18 +164,21 @@ export function ReportForm({
           </Campo>
           <Campo label="Equipe presente" className="md:col-span-3">
             <div className="flex flex-wrap gap-2">
-              {f.equipe.map((nome) => (
+              {f.equipe.map((membro) => (
                 <span
-                  key={nome}
+                  key={membro.nome}
                   className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-sm text-primary-foreground"
                 >
-                  {nome}
+                  {membro.nome}
+                  {membro.funcao && (
+                    <span className="text-primary-foreground/75">— {membro.funcao}</span>
+                  )}
                   <button
                     type="button"
                     onClick={() =>
                       set(
                         "equipe",
-                        f.equipe.filter((n) => n !== nome),
+                        f.equipe.filter((m) => m.nome !== membro.nome),
                       )
                     }
                     className="opacity-80 hover:opacity-100"
@@ -191,7 +194,13 @@ export function ReportForm({
             <Select
               value=""
               onValueChange={(v) => {
-                if (!f.equipe.includes(v)) set("equipe", [...f.equipe, v]);
+                const colaborador = colaboradores.find((c) => c.nome === v);
+                if (colaborador && !f.equipe.some((m) => m.nome === v)) {
+                  set("equipe", [
+                    ...f.equipe,
+                    { nome: colaborador.nome, funcao: colaborador.funcao },
+                  ]);
+                }
               }}
             >
               <SelectTrigger>
@@ -199,7 +208,7 @@ export function ReportForm({
               </SelectTrigger>
               <SelectContent>
                 {colaboradores
-                  .filter((c) => !f.equipe.includes(c.nome))
+                  .filter((c) => !f.equipe.some((m) => m.nome === c.nome))
                   .map((c) => (
                     <SelectItem key={c.id} value={c.nome}>
                       {c.nome}

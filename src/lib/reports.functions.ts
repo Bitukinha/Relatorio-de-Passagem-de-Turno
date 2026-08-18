@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { sql } from "./db.server";
 import { requireUsuario } from "./session.server";
-import type { ShiftReport, ShiftReportInput } from "./shift";
+import { novosEquipamentos, novosSilos, type ShiftReport, type ShiftReportInput } from "./shift";
 
 function toIsoDate(v: unknown): string {
   return v instanceof Date ? v.toISOString().slice(0, 10) : (v as string);
@@ -12,16 +12,38 @@ function toIsoDateTime(v: unknown): string {
   return v instanceof Date ? v.toISOString() : (v as string);
 }
 
+function normalizeEquipe(v: unknown): ShiftReport["equipe"] {
+  if (!Array.isArray(v)) return [];
+  return v.map((item) =>
+    typeof item === "string" ? { nome: item, funcao: "" } : (item as ShiftReport["equipe"][number]),
+  );
+}
+
+// Relatórios criados antes da checklist fixa de equipamentos guardam um formato
+// diferente (setores com "linhas" em vez de grupos com "itens"). Sem forma de
+// mapear os dados antigos para os itens fixos atuais, cai no checklist padrão.
+function normalizeEquipamentos(v: unknown): ShiftReport["equipamentos"] {
+  if (!Array.isArray(v) || !v.length) return novosEquipamentos();
+  const formatoAtual = v.every(
+    (g) => g && typeof g === "object" && Array.isArray((g as { itens?: unknown }).itens),
+  );
+  return formatoAtual ? (v as ShiftReport["equipamentos"]) : novosEquipamentos();
+}
+
+function normalizeSilos(v: unknown): ShiftReport["silos"] {
+  return Array.isArray(v) && v.length ? (v as ShiftReport["silos"]) : novosSilos();
+}
+
 function normalize(row: Record<string, unknown>): ShiftReport {
   return {
     ...(row as unknown as ShiftReport),
     data: toIsoDate(row["data"]),
     created_at: toIsoDateTime(row["created_at"]),
     updated_at: toIsoDateTime(row["updated_at"]),
-    equipe: (row["equipe"] as ShiftReport["equipe"]) ?? [],
+    equipe: normalizeEquipe(row["equipe"]),
     producao: (row["producao"] as ShiftReport["producao"]) ?? [],
-    silos: (row["silos"] as ShiftReport["silos"]) ?? [],
-    equipamentos: (row["equipamentos"] as ShiftReport["equipamentos"]) ?? [],
+    silos: normalizeSilos(row["silos"]),
+    equipamentos: normalizeEquipamentos(row["equipamentos"]),
     paradas: (row["paradas"] as ShiftReport["paradas"]) ?? [],
     pendencias: (row["pendencias"] as ShiftReport["pendencias"]) ?? [],
     seguranca:

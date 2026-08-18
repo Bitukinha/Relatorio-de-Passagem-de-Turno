@@ -50,7 +50,10 @@ export function gerarPdf(r: ShiftReport) {
   });
   y = tableEnd(doc);
 
-  if (r.equipe.length) y = bloco(doc, y, "Equipe presente", r.equipe.join(", "));
+  if (r.equipe.length) {
+    const equipe = r.equipe.map((m) => (m.funcao ? `${m.nome} (${m.funcao})` : m.nome)).join(", ");
+    y = bloco(doc, y, "Equipe presente", equipe);
+  }
   y = bloco(doc, y, "1. Resumo do turno", r.resumo || "-");
 
   if (r.producao.length) {

@@ -8,6 +8,11 @@ export const TURNOS: Record<Turno, { nome: string; inicio: string; fim: string }
 
 export const ESCALA = "6x1 — segunda a sábado";
 
+export type EquipeMembro = {
+  nome: string;
+  funcao: string;
+};
+
 export type ProducaoItem = {
   produto: string;
   produzido: number;
@@ -159,7 +164,7 @@ export type ShiftReport = {
   hora_inicio: string;
   hora_fim: string;
   responsavel: string;
-  equipe: string[];
+  equipe: EquipeMembro[];
   setor: string;
   resumo: string;
   producao: ProducaoItem[];
